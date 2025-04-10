@@ -1,0 +1,96 @@
+<h1><%= @user.username %></h1>
+
+<%= image_tag @user.avatar_image.url, class: "rounded", width: 100 if @user.avatar_image? %>
+
+<!-- Followers / Following / Pending Links -->
+<p>
+  <%= link_to "#{@user.followers.count} followers", "#followers" %>
+  <%= link_to "#{@user.leaders.count} following", "#leaders" %>
+  <% if @user.private? && current_user == @user %>
+    <%= link_to "#{@user.received_follow_requests.pending.count} pending", "#pending_requests" %>
+  <% end %>
+</p>
+
+<!-- Posts / Liked Tabs -->
+<ul class="nav nav-tabs">
+  <li class="nav-item">
+    <%= link_to "Posts", user_path(@user.username), class: "nav-link" %>
+  </li>
+  <li class="nav-item">
+    <%= link_to "Liked", liked_path(@user.username), class: "nav-link" %>
+  </li>
+</ul>
+
+<!-- Follow / Unfollow / Request Logic -->
+<% if current_user != @user %>
+  <% request = FollowRequest.find_by(sender: current_user, recipient: @user) %>
+  <% if current_user.leaders.include?(@user) %>
+    <%= button_to "Un-follow", follow_request_path(request), method: :delete %>
+  <% elsif request&.pending? %>
+    <%= button_to "Un-request", follow_request_path(request), method: :delete %>
+  <% else %>
+    <%= button_to "Follow", follow_requests_path(recipient_id: @user.id), method: :post %>
+  <% end %>
+<% end %>
+
+<!-- Bio and Website -->
+<p><strong><%= @user.name %></strong></p>
+<p><%= @user.bio %></p>
+<%= link_to @user.website, @user.website if @user.website.present? %>
+
+<!-- Photos (Bootstrap Cards) -->
+<% @user.own_photos.each do |photo| %>
+  <div class="card mb-4">
+    <div class="card-header">
+      <strong><%= @user.username %></strong>
+    </div>
+
+    <% if photo.image.present? && photo.image.respond_to?(:url) %>
+      <%= image_tag photo.image.url, class: "card-img-top" %>
+    <% end %>
+
+    <div class="card-body">
+      <p class="card-text"><%= photo.caption %></p>
+
+      <% if current_user == @user %>
+        <%= button_to photo_path(photo), method: :delete, class: "btn btn-sm btn-danger", data: { turbo_confirm: "Are you sure?" } do %>
+          <i class="fa fa-trash"></i>
+        <% end %>
+      <% end %>
+    </div>
+
+    <div class="card-footer">
+      <% photo.comments.each do |comment| %>
+        <p><strong><%= comment.author.username %>:</strong> <%= comment.body %></p>
+      <% end %>
+    </div>
+  </div>
+<% end %>
+
+<!-- Followers List -->
+<h3 id="followers">Followers</h3>
+<ul>
+  <% @user.followers.each do |f| %>
+    <li><%= f.username %></li>
+  <% end %>
+</ul>
+
+<!-- Following List -->
+<h3 id="leaders">Following</h3>
+<ul>
+  <% @user.leaders.each do |l| %>
+    <li><%= l.username %></li>
+  <% end %>
+</ul>
+
+<!-- Accept / Reject Follow Requests -->
+<% if current_user == @user %>
+  <h3 id="pending_requests">Pending Follow Requests</h3>
+  <% @user.received_follow_requests.pending.each do |r| %>
+    <p>
+      Accept <%= r.sender.username %>'s request:
+      <%= button_to "Accept #{r.sender.username}'s request", accept_follow_request_path(r), method: :post %>
+      <%= button_to "Decline #{r.sender.username}'s request", reject_follow_request_path(r), method: :delete %>
+    </p>
+  <% end %>
+<% end %>
