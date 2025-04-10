@@ -4,7 +4,7 @@
       <h4 class="card-title mb-4">User Sign Up</h4>
 
       <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { multipart: true }) do |f| %>
-        <%= devise_error_messages! %>
+        <%= render "devise/shared/error_messages", resource: resource %>
 
         <div class="mb-3">
           <%= f.label :email, class: "form-label" %>
@@ -32,7 +32,7 @@
         </div>
 
         <div class="mb-3">
-          <%= f.label :avatar_image, "Avatar Image", class: "form-label" %>
+          <%= f.label :avatar_image, "Avatar image", class: "form-label" %>
           <%= f.file_field :avatar_image, accept: "image/*", class: "form-control" %>
         </div>
 

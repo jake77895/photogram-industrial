@@ -34,6 +34,8 @@ class User < ApplicationRecord
 
   has_many :fans, through: :likes
 
+  mount_uploader :avatar_image, ImageUploader
+
   has_many :own_photos, class_name: "Photo", foreign_key: "owner_id"
   has_many :comments, foreign_key: "author_id"
 
@@ -54,4 +56,8 @@ class User < ApplicationRecord
   has_many :followers, through: :accepted_received_follow_requests, source: :sender
 
   validates :username, presence: true, uniqueness: true
+
+  has_many :feed, through: :leaders, source: :own_photos
+
+  has_many :discover, -> { distinct }, through: :leaders, source: :liked_photos
 end

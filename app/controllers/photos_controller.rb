@@ -21,8 +21,8 @@ class PhotosController < ApplicationController
 
   # POST /photos or /photos.json
   def create
-    @photo = Photo.new(photo_params)
-
+    @photo = current_user.own_photos.build(photo_params)
+  
     respond_to do |format|
       if @photo.save
         format.html { redirect_to @photo, notice: "Photo was successfully created." }
@@ -65,6 +65,6 @@ class PhotosController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def photo_params
-      params.expect(photo: [ :image, :comments_count, :likes_count, :caption, :owner_id ])
+      params.require(:photo).permit(:image, :caption)
     end
 end
